@@ -41,16 +41,44 @@
     }
 
     // 當你匯入你的 JSON 時
-    document.getElementById('jsonInput').addEventListener('change', function(e) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const myData = JSON.parse(event.target.result);
-            // 這裡改成你的比對邏輯，假設你的 JSON 裡有 itemName 欄位
-            const ownedNames = myData.map(item => item.itemName); 
-            renderGallery(ownedNames);
-        };
-        reader.readAsText(e.target.files[0]);
+    // 比對邏輯修改
+document.getElementById('jsonInput').addEventListener('change', function(e) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const myData = JSON.parse(event.target.result);
+        
+        // 關鍵點：myData.items 就是你要的 ID 陣列 (例如 ["0D22ZYVTT", "IWPL9SX4J"...])
+        const ownedIds = myData.items || []; 
+        
+        renderGallery(ownedIds);
+    };
+    reader.readAsText(e.target.files[0]);
+});
+
+function renderGallery(ownedIds = []) {
+    const gallery = document.getElementById('gallery');
+    gallery.innerHTML = '';
+    
+    allImageNames.forEach(filename => {
+        // 檔名是 "0D22ZYVTT.png"，我們把 .png 拿掉變成 "0D22ZYVTT"
+        const idFromFilename = filename.replace('.png', '');
+        
+        // 比對：JSON 裡的 ID 是否存在於檔案名稱中
+        const isOwned = ownedIds.includes(idFromFilename);
+
+        const div = document.createElement('div');
+        div.className = `card ${isOwned ? 'owned' : ''}`;
+        
+        // 這裡確保路徑正確：paka/加上檔名
+        const imgPath = `paka/${filename}`;
+        
+        div.innerHTML = `
+            <img src="${imgPath}" alt="${idFromFilename}" style="width:80px; height:80px; display:block;">
+            <div style="font-size: 10px;">${idFromFilename}</div>
+        `;
+        gallery.appendChild(div);
     });
+}
 
     // 頁面載入先顯示全部
     window.onload = () => renderGallery([]);
