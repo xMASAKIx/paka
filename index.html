@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>衣櫃收藏管理系統</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
+        .stats { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; }
+        .card { background: white; padding: 10px; border-radius: 8px; text-align: center; border: 2px solid transparent; transition: 0.3s; }
+        .card img { width: 80px; height: 80px; display: block; margin: 0 auto 5px; }
+        /* 反黑效果 */
+        .card.owned { filter: grayscale(1) brightness(0.6); border: 2px solid #333; }
+        .card.owned::after { content: "✔ 已擁有"; color: #333; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>衣櫃圖鑑</h1>
+    <p>請上傳你的 JSON 檔案：</p>
+    <input type="file" id="jsonInput">
+    <div id="stats" class="stats">尚未匯入資料</div>
+    <div id="gallery" class="gallery"></div>
+
+    <script>
+        // 這裡填入你 JSON 檔案中的完整清單內容
+        const allCharacters = [ /* 將 msw_export_1782499572.json 的內容全部複製貼到這裡 */ ];
+
+        document.getElementById('jsonInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                const myData = JSON.parse(event.target.result);
+                const ownedIds = myData.map(item => item.id); // 取得你擁有的 ID 清單
+                renderGallery(ownedIds);
+            };
+            reader.readAsText(file);
+        });
+
+        function renderGallery(ownedIds) {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+            let count = 0;
+
+            allCharacters.forEach(char => {
+                const isOwned = ownedIds.includes(char.id);
+                if (isOwned) count++;
+
+                const div = document.createElement('div');
+                div.className = `card ${isOwned ? 'owned' : ''}`;
+                div.innerHTML = `
+                    <img src="${char.thumbnail}" alt="${char.itemName}">
+                    <div style="font-size: 12px;">${char.itemName}</div>
+                `;
+                gallery.appendChild(div);
+            });
+
+            document.getElementById('stats').innerText = `已擁有：${count} / ${allCharacters.length}`;
+        }
+    </script>
+</body>
+</html>
