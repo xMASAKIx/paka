@@ -65,28 +65,30 @@
     <script src="images_list.js"></script>
     <script>
         function renderGallery(ownedIds = []) {
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
-            
-            if (typeof allImageNames === 'undefined') {
-                gallery.innerHTML = '<p style="color:red;">錯誤：找不到 images_list.js，請確認檔案位置！</p>';
-                return;
-            }
+    const gallery = document.getElementById('gallery');
+    gallery.innerHTML = '';
+    
+    allImageNames.forEach(filename => {
+        // 1. 確保拿到純 ID (去掉可能存在的 .png)
+        const idOnly = filename.replace('.png', '');
+        const isOwned = ownedIds.includes(idOnly);
 
-            allImageNames.forEach(filename => {
-                const idFromFilename = filename.replace('.png', '');
-                const isOwned = ownedIds.includes(idFromFilename);
+        // 2. 強制組裝路徑：一定是 "paka/" + ID + ".png"
+        const finalPath = `paka/${idOnly}.png`;
 
-                const div = document.createElement('div');
-                div.className = `card ${isOwned ? 'owned' : ''}`;
-                
-                div.innerHTML = `
-                    <img src="paka/${filename}" onerror="this.style.display='none'" alt="${idFromFilename}">
-                    <div style="font-size: 10px; color: #aaa;">${idFromFilename}</div>
-                `;
-                gallery.appendChild(div);
-            });
-        }
+        const div = document.createElement('div');
+        div.className = `card ${isOwned ? 'owned' : ''}`;
+        
+        div.innerHTML = `
+            <img src="${finalPath}" 
+                 onerror="this.style.display='none'; console.error('找不到圖片:', '${finalPath}')" 
+                 alt="${idOnly}" 
+                 style="width:80px; height:120px; display:block;">
+            <div style="font-size: 10px; color: #aaa;">${idOnly}</div>
+        `;
+        gallery.appendChild(div);
+    });
+}
 
         document.getElementById('jsonInput').addEventListener('change', function(e) {
             const reader = new FileReader();
