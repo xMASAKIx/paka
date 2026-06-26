@@ -89,6 +89,17 @@ function renderGallery(ownedIds) {
 
     document.getElementById('stats').innerText = `已擁有：${count} / ${allCharacters.length}`;
 }
+        
+// 頁面載入時，先顯示所有圖片 (未擁有狀態)
+window.onload = function() {
+    renderGallery([]); // 傳入空陣列，代表目前還沒匯入衣櫃資料
+};
+
+// 當使用者上傳檔案後，才觸發「反黑」的比對
+document.getElementById('jsonInput').addEventListener('change', function(e) {
+    // ... 原有的 FileReader 邏輯，讀取完後呼叫 renderGallery(ownedIds)
+});
+
 
     </script>
 </body>
