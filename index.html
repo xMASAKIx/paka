@@ -23,42 +23,10 @@
     <div id="gallery" class="gallery"></div>
 
     <script>
-        // 這裡填入你 JSON 檔案中的完整清單內容
-        const allCharacters = [ /* 將 msw_export_1782499572.json 的內容全部複製貼到這裡 */ ];
+        // 1. 確保 allCharacters 已經載入你的資料
+const allCharacters = [ /* 這裡貼上你的 JSON 資料 */ ];
 
-        document.getElementById('jsonInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            
-            reader.onload = function(event) {
-                const myData = JSON.parse(event.target.result);
-                const ownedIds = myData.map(item => item.id); // 取得你擁有的 ID 清單
-                renderGallery(ownedIds);
-            };
-            reader.readAsText(file);
-        });
-
-        function renderGallery(ownedIds) {
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
-            let count = 0;
-
-            allCharacters.forEach(char => {
-                const isOwned = ownedIds.includes(char.id);
-                if (isOwned) count++;
-
-                const div = document.createElement('div');
-                div.className = `card ${isOwned ? 'owned' : ''}`;
-                div.innerHTML = `
-                    <img src="${char.thumbnail}" alt="${char.itemName}">
-                    <div style="font-size: 12px;">${char.itemName}</div>
-                `;
-                gallery.appendChild(div);
-            });
-
-            document.getElementById('stats').innerText = `已擁有：${count} / ${allCharacters.length}`;
-        }
-        
+// 2. 這是整合後的渲染函數
 function renderGallery(ownedIds) {
     const gallery = document.getElementById('gallery');
     gallery.innerHTML = '';
@@ -68,39 +36,47 @@ function renderGallery(ownedIds) {
         const isOwned = ownedIds.includes(char.id);
         if (isOwned) count++;
 
-        // --- 重點在這裡 ---
-        // 假設你的圖片檔名是「角色名稱.png」或「ID.png」
-        // 如果檔名是中文或特殊字元，請確認檔名是否完全吻合
-        const imagePath = `paka/${char.itemName}.png`; 
-        // -----------------
+        // 圖片路徑邏輯：確保路徑指向 paka/ 資料夾
+        const imagePath = `paka/${char.itemName}.png`;
 
         const div = document.createElement('div');
         div.className = `card ${isOwned ? 'owned' : ''}`;
         
-        // 增加一個 onerror 事件，如果圖片找不到會顯示替代文字
         div.innerHTML = `
             <img src="${imagePath}" 
                  onerror="this.src='https://via.placeholder.com/80?text=無圖'" 
                  alt="${char.itemName}">
-            <div style="font-size: 12px;">${char.itemName}</div>
+            <div style="font-size: 10px;">${char.itemName}</div>
         `;
         gallery.appendChild(div);
     });
 
     document.getElementById('stats').innerText = `已擁有：${count} / ${allCharacters.length}`;
 }
-        
-// 頁面載入時，先顯示所有圖片 (未擁有狀態)
+
+// 3. 頁面載入完成時，預設顯示全部 (未擁有)
 window.onload = function() {
-    renderGallery([]); // 傳入空陣列，代表目前還沒匯入衣櫃資料
+    renderGallery([]); 
 };
 
-// 當使用者上傳檔案後，才觸發「反黑」的比對
+// 4. 監聽上傳動作
 document.getElementById('jsonInput').addEventListener('change', function(e) {
-    // ... 原有的 FileReader 邏輯，讀取完後呼叫 renderGallery(ownedIds)
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            const myData = JSON.parse(event.target.result);
+            // 確保這裡抓到的 id 與 JSON 結構一致
+            const ownedIds = myData.map(item => item.id);
+            renderGallery(ownedIds);
+        } catch (error) {
+            alert("JSON 檔案格式錯誤！");
+        }
+    };
+    reader.readAsText(file);
 });
-
-
     </script>
 </body>
 </html>
