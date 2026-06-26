@@ -58,6 +58,38 @@
 
             document.getElementById('stats').innerText = `已擁有：${count} / ${allCharacters.length}`;
         }
+        
+function renderGallery(ownedIds) {
+    const gallery = document.getElementById('gallery');
+    gallery.innerHTML = '';
+    let count = 0;
+
+    allCharacters.forEach(char => {
+        const isOwned = ownedIds.includes(char.id);
+        if (isOwned) count++;
+
+        // --- 重點在這裡 ---
+        // 假設你的圖片檔名是「角色名稱.png」或「ID.png」
+        // 如果檔名是中文或特殊字元，請確認檔名是否完全吻合
+        const imagePath = `images/${char.itemName}.png`; 
+        // -----------------
+
+        const div = document.createElement('div');
+        div.className = `card ${isOwned ? 'owned' : ''}`;
+        
+        // 增加一個 onerror 事件，如果圖片找不到會顯示替代文字
+        div.innerHTML = `
+            <img src="${imagePath}" 
+                 onerror="this.src='https://via.placeholder.com/80?text=無圖'" 
+                 alt="${char.itemName}">
+            <div style="font-size: 12px;">${char.itemName}</div>
+        `;
+        gallery.appendChild(div);
+    });
+
+    document.getElementById('stats').innerText = `已擁有：${count} / ${allCharacters.length}`;
+}
+
     </script>
 </body>
 </html>
