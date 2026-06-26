@@ -18,54 +18,42 @@
     <div id="stats">預設顯示全部角色</div>
     <div id="gallery" class="gallery"></div>
 
-    <script>
-        // 這是你的資料庫，請確保這裡有所有角色的 id 和 itemName
-        const allCharacters = [
-            { "id": "1782499572.675_915", "itemName": "Tearju" },
-            { "id": "1782499572.676_366", "itemName": "ΓRanma" },
-            // ... 請將你全部的資料貼在這裡
-        ];
+    <script src="images_list.js"></script>
+<script>
+    // 渲染函數：先顯示所有圖片，若比對成功則反黑
+    function renderGallery(ownedIds = []) {
+        const gallery = document.getElementById('gallery');
+        gallery.innerHTML = '';
+        
+        allImageNames.forEach(name => {
+            // 這裡假設你的 JSON 裡面的 itemName 跟檔名是一樣的
+            // 所以我們直接用 name 來比對 ownedIds (如果你的 JSON 裡面存的是名稱的話)
+            const isOwned = ownedIds.includes(name); 
 
-        // 渲染函數
-        function renderGallery(ownedIds = []) {
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
-            let count = 0;
-
-            allCharacters.forEach(char => {
-                // 比對邏輯：JSON 裡的 ID 是否在我們匯入的 ownedIds 清單中
-                const isOwned = ownedIds.includes(char.id);
-                if (isOwned) count++;
-
-                // 圖片路徑邏輯：依照檔案名稱 (itemName) 來找 paka 資料夾內的圖片
-                const imagePath = `paka/${char.itemName}.png`;
-
-                const div = document.createElement('div');
-                div.className = `card ${isOwned ? 'owned' : ''}`;
-                div.innerHTML = `
-                    <img src="${imagePath}" onerror="this.src='https://via.placeholder.com/80?text=無圖'" alt="${char.itemName}">
-                    <div style="font-size: 10px;">${char.itemName}</div>
-                `;
-                gallery.appendChild(div);
-            });
-            document.getElementById('stats').innerText = `已擁有：${count} / ${allCharacters.length}`;
-        }
-
-        // 1. 網頁開啟時，直接執行渲染 (傳入空陣列，代表還沒匯入資料)
-        window.onload = () => renderGallery([]);
-
-        // 2. 匯入檔案後，執行比對
-        document.getElementById('jsonInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const myData = JSON.parse(event.target.result);
-                // 抓出匯入資料中的 ID 陣列
-                const ownedIds = myData.map(item => item.id);
-                renderGallery(ownedIds);
-            };
-            reader.readAsText(file);
+            const div = document.createElement('div');
+            div.className = `card ${isOwned ? 'owned' : ''}`;
+            div.innerHTML = `
+                <img src="paka/${name}.png" onerror="this.style.display='none'">
+                <div style="font-size: 10px;">${name}</div>
+            `;
+            gallery.appendChild(div);
         });
-    </script>
+    }
+
+    // 當你匯入你的 JSON 時
+    document.getElementById('jsonInput').addEventListener('change', function(e) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const myData = JSON.parse(event.target.result);
+            // 這裡改成你的比對邏輯，假設你的 JSON 裡有 itemName 欄位
+            const ownedNames = myData.map(item => item.itemName); 
+            renderGallery(ownedNames);
+        };
+        reader.readAsText(e.target.files[0]);
+    });
+
+    // 頁面載入先顯示全部
+    window.onload = () => renderGallery([]);
+</script>
 </body>
 </html>
