@@ -4,84 +4,100 @@
     <meta charset="UTF-8">
     <title>衣櫃收藏管理系統</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; }
-        .card { background: white; padding: 10px; border-radius: 8px; text-align: center; border: 2px solid transparent; }
-        .card img { width: 80px; height: 120px; display: block; margin: 0 auto 5px; }
-        .card.owned { filter: grayscale(1) brightness(0.6); border: 2px solid #333; }
-        .card.owned::after { content: "✔ 已擁有"; display: block; color: #333; font-weight: bold; font-size: 10px; }
+        /* 深色模式全局設定 */
+        body { 
+            font-family: sans-serif; 
+            padding: 20px; 
+            background-color: #121212; 
+            color: #e0e0e0; 
+        }
+        h1 { color: #ffffff; }
+        
+        .gallery { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+            gap: 15px; 
+            margin-top: 20px;
+        }
+        
+        .card { 
+            background: #1e1e1e; 
+            padding: 10px; 
+            border-radius: 8px; 
+            text-align: center; 
+            border: 2px solid #333;
+            transition: transform 0.2s;
+        }
+        
+        .card:hover { border-color: #555; }
+        
+        .card img { 
+            width: 80px; 
+            height: 120px; 
+            display: block; 
+            margin: 0 auto 5px; 
+            border-radius: 4px;
+        }
+        
+        /* 已擁有的角色：降低亮度並加上邊框 */
+        .card.owned { 
+            filter: grayscale(0.8) brightness(0.5); 
+            border: 2px solid #4caf50; 
+        }
+        
+        .card.owned::after { 
+            content: "✔ 已擁有"; 
+            display: block; 
+            color: #4caf50; 
+            font-weight: bold; 
+            font-size: 10px; 
+        }
+
+        #jsonInput { color: #e0e0e0; }
     </style>
 </head>
 <body>
     <h1>衣櫃圖鑑</h1>
     <input type="file" id="jsonInput">
-    <div id="stats">預設顯示全部角色</div>
+    <div id="stats" style="margin: 10px 0;">請上傳 JSON 進行比對</div>
     <div id="gallery" class="gallery"></div>
 
     <script src="images_list.js"></script>
-<script>
-    // 渲染函數：先顯示所有圖片，若比對成功則反黑
-    function renderGallery(ownedIds = []) {
-        const gallery = document.getElementById('gallery');
-        gallery.innerHTML = '';
-        
-        allImageNames.forEach(name => {
-            // 這裡假設你的 JSON 裡面的 itemName 跟檔名是一樣的
-            // 所以我們直接用 name 來比對 ownedIds (如果你的 JSON 裡面存的是名稱的話)
-            const isOwned = ownedIds.includes(name); 
+    <script>
+        function renderGallery(ownedIds = []) {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+            
+            if (typeof allImageNames === 'undefined') {
+                gallery.innerHTML = '<p style="color:red;">錯誤：找不到 images_list.js，請確認檔案位置！</p>';
+                return;
+            }
 
-            const div = document.createElement('div');
-            div.className = `card ${isOwned ? 'owned' : ''}`;
-            div.innerHTML = `
-                <img src="paka/${name}.png" onerror="this.style.display='none'">
-                <div style="font-size: 10px;">${name}</div>
-            `;
-            gallery.appendChild(div);
+            allImageNames.forEach(filename => {
+                const idFromFilename = filename.replace('.png', '');
+                const isOwned = ownedIds.includes(idFromFilename);
+
+                const div = document.createElement('div');
+                div.className = `card ${isOwned ? 'owned' : ''}`;
+                
+                div.innerHTML = `
+                    <img src="paka/${filename}" onerror="this.style.display='none'" alt="${idFromFilename}">
+                    <div style="font-size: 10px; color: #aaa;">${idFromFilename}</div>
+                `;
+                gallery.appendChild(div);
+            });
+        }
+
+        document.getElementById('jsonInput').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const myData = JSON.parse(event.target.result);
+                renderGallery(myData.items || []);
+            };
+            reader.readAsText(e.target.files[0]);
         });
-    }
 
-    // 當你匯入你的 JSON 時
-    // 比對邏輯修改
-document.getElementById('jsonInput').addEventListener('change', function(e) {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        const myData = JSON.parse(event.target.result);
-        
-        // 關鍵點：myData.items 就是你要的 ID 陣列 (例如 ["0D22ZYVTT", "IWPL9SX4J"...])
-        const ownedIds = myData.items || []; 
-        
-        renderGallery(ownedIds);
-    };
-    reader.readAsText(e.target.files[0]);
-});
-
-function renderGallery(ownedIds = []) {
-    const gallery = document.getElementById('gallery');
-    gallery.innerHTML = '';
-    
-    allImageNames.forEach(filename => {
-        // 檔名是 "0D22ZYVTT.png"，我們把 .png 拿掉變成 "0D22ZYVTT"
-        const idFromFilename = filename.replace('.png', '');
-        
-        // 比對：JSON 裡的 ID 是否存在於檔案名稱中
-        const isOwned = ownedIds.includes(idFromFilename);
-
-        const div = document.createElement('div');
-        div.className = `card ${isOwned ? 'owned' : ''}`;
-        
-        // 這裡確保路徑正確：paka/加上檔名
-        const imgPath = `paka/${filename}`;
-        
-        div.innerHTML = `
-            <img src="${imgPath}" alt="${idFromFilename}" style="width:80px; height:80px; display:block;">
-            <div style="font-size: 10px;">${idFromFilename}</div>
-        `;
-        gallery.appendChild(div);
-    });
-}
-
-    // 頁面載入先顯示全部
-    window.onload = () => renderGallery([]);
-</script>
+        window.onload = () => renderGallery([]);
+    </script>
 </body>
 </html>
