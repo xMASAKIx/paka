@@ -61,34 +61,43 @@
     <input type="file" id="jsonInput">
     <div id="stats" style="margin: 10px 0;">匯入衣櫃 JSON </div>
     <div id="gallery" class="gallery"></div>
-
+    <div id="stats" style="font-size: 1.2em; font-weight: bold; color: #ffffff; margin: 10px 0;">
+        請上傳 JSON 進行統計...
+    </div>
     <script src="images_list.js"></script>
     <script>
         function renderGallery(ownedIds = []) {
-    const gallery = document.getElementById('gallery');
-    gallery.innerHTML = '';
-    
-    allImageNames.forEach(filename => {
-        // 1. 確保拿到純 ID (去掉可能存在的 .png)
-        const idOnly = filename.replace('.png', '');
-        const isOwned = ownedIds.includes(idOnly);
-
-        // 2. 強制組裝路徑：一定是 "paka/" + ID + ".png"
-        const finalPath = `paka/${idOnly}.png`;
-
-        const div = document.createElement('div');
-        div.className = `card ${isOwned ? 'owned' : ''}`;
+        const gallery = document.getElementById('gallery');
+        const stats = document.getElementById('stats');
+        gallery.innerHTML = '';
         
-        div.innerHTML = `
-            <img src="${finalPath}" 
-                 onerror="this.style.display='none'; console.error('找不到圖片:', '${finalPath}')" 
-                 alt="${idOnly}" 
-                 style="width:80px; height:120px; display:block;">
-            <div style="font-size: 12px; color: #0538f1;">${idOnly}</div>
-        `;
-        gallery.appendChild(div);
-    });
-}
+        let ownedCount = 0; // 用來計算已擁有的數量
+        const totalCount = allImageNames.length; // 總數就是你的陣列長度
+
+        allImageNames.forEach(filename => {
+            const idOnly = filename.replace('.png', '');
+            const isOwned = ownedIds.includes(idOnly);
+            
+            if (isOwned) ownedCount++; // 如果有擁有，計數加 1
+
+            const finalPath = `paka/${idOnly}.png`;
+
+            const div = document.createElement('div');
+            div.className = `card ${isOwned ? 'owned' : ''}`;
+            
+            div.innerHTML = `
+                <img src="${finalPath}" 
+                     onerror="this.style.display='none'" 
+                     alt="${idOnly}" 
+                     style="width:80px; height:80px; display:block;">
+                <div style="font-size: 10px; color: #aaa;">${idOnly}</div>
+            `;
+            gallery.appendChild(div);
+        });
+
+        // 更新統計文字
+        stats.innerText = `總共：${totalCount} 個 | 已擁有：${ownedCount} 個 (完成度：${((ownedCount/totalCount)*100).toFixed(1)}%)`;
+    }
 
         document.getElementById('jsonInput').addEventListener('change', function(e) {
             const reader = new FileReader();
