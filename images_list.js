@@ -72,7 +72,7 @@ const allImageNames = [
 "O6NK62RQ0",
 "051",
 "059",
-"071",
+"I2BU162AQ",
 "74LKHAE8R",
 "2NJVJL5T2",
 "J1VP6N4SW",
